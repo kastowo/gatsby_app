@@ -1,0 +1,340 @@
+swagger: "2.0"
+info:
+  description: "API B2B of Ticketing"
+  version: "1.0"
+  title: "B2B API"
+  # termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "kastowoayani@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "api.atiket.com"
+basePath: "/v1"
+paths:
+  /token:
+    get:
+      tags:
+       - Authorization
+      summary: ""
+      description: "Generate token code to access apps"
+      consumes:
+        - application/json
+      operationId: flight.getToken
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/Token"
+        "400":
+          description: Error header params
+  /search_flight:
+    get:
+      tags:
+       - Flight
+      summary: ""
+      description: "Flight schedule search"
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+        - in: query
+          name : departure
+          type: string
+          maxLength: 3
+          description: "Departure airport code"
+          required: true
+        - in: query
+          name: arrival
+          type: string
+          maxLength: 3
+          description: "Arrival airport code"
+          required: true
+        - in: query
+          name: date
+          type: string
+          format: Date
+          description: "Depart date"
+          required: true
+        - in: query
+          name: ret_date
+          type: string
+          format: Date
+          description: "Return date"
+        - in: query
+          name: adult
+          type: integer
+          default: 1
+          maximum: 6
+        - in: query
+          name: child
+          type: integer
+          default: 0
+          maximum: 6
+        - in: query
+          name: infant
+          type: integer
+          default: 0
+          maximum: 6
+      operationId: flight.searchFlight
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /search_nearest_airport:
+    get:
+      tags:
+       - Flight
+      summary: ""
+      description: "Search for the nearest airport"
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+        - in: query
+          name : ip
+          type: string
+          maxLength: 20
+          format: ipv4
+          description: "Ip address user"
+        - in: query
+          name: long
+          type: string
+          maxLength: 20
+          description: "Longitude user position, can be empty if you use an ip address"
+        - in: query
+          name: lat
+          type: string
+          maxLength: 20
+          description: "Latitude user position, can be empty if you use an ip address"
+      operationId: flight.searchNearestAirport
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /search_popular_airport:
+    get:
+      tags:
+       - Flight
+      summary: ""
+      description: "Search for the popular airport destination from given departure airport"
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+        - in: query
+          name: depart
+          type: string
+          maxLength: 3
+          required: true
+      operationId: flight.searchPopularAirport
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /search_airport:
+    get:
+      tags:
+       - Flight
+      summary: ""
+      description: "List of all airport"
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+      operationId: flight.searchAirport
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /check_flight_updated:
+    get:
+      tags:
+       - Flight
+      summary: ""
+      description: "Data given when requested is the latest data updated by the previous request, not the live data. For checking whether new or updated data exists or not, you should call check update function. If update variable is greater than 0, it means new data exists. To get the latest data, search function must be called again."
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+        - in: query
+          name : departure
+          type: string
+          maxLength: 3
+          description: "Departure airport code"
+          required: true
+        - in: query
+          name: arrival
+          type: string
+          maxLength: 3
+          description: "Arrival airport code"
+          required: true
+        - in: query
+          name: date
+          type: string
+          format: Date
+          description: "Depart date"
+          required: true
+        - in: query
+          name: adult
+          type: integer
+          default: 1
+          maximum: 6
+        - in: query
+          name: child
+          type: integer
+          default: 0
+          maximum: 6
+        - in: query
+          name: infant
+          type: integer
+          default: 0
+          maximum: 6
+      operationId: flight.checkFlightUpdated
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /get_lion_captcha:
+    get:
+      tags:
+       - Flight
+      summary: ""
+      description: "Specially for Lion air flights, you must request a captcha first.If it exists, the captcha and sessionid must be included while calling add order."
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+      operationId: flight.getLionCaptcha
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /get_flight_data:
+    get:
+      tags:
+       - Flight
+      summary: ""
+      description: "After search, call this function when user choose the flight to ensure the data."
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+        - in: query
+          name: flight_id
+          type: string
+          required: true
+          description: "flight_id want to order"
+        - in: query
+          name: date
+          type: string
+          required: true
+          format: Date
+          description: "date want to travel"
+        - in: query
+          name: ret_flight_id
+          type: string
+          description: "ret_flight_id want to order for return flight"
+        - in: query
+          name: ret_date
+          type: string
+          description: "return date want to travel"
+      operationId: flight.getFlightData
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+
+definitions:
+  Token:
+    type: "object"
+    properties:
+      status:
+        type: number
+        example: 200
+      data:
+        type: "object"
+        properties:
+          diagnostic:
+            type: "object"
+            properties:
+              status:
+                type: number
+                example: 200
+              elapsetime:
+                type: number
+                example: 0.0555
+              memoryusage:
+                type: string
+                example: 4.48MB
+              unix_timestamp:
+                type: number
+                example: 1399524662
+              confirm:
+                type: string
+                example: success
+              lang:
+                type: string
+                example: id
+              currency:
+                type: string
+                example: IDR
+          output_type:
+            type: string
+            example: json
+          login_status:
+            type: string
+            example: false
+          token:
+            type: string
+            example: "56c8624d6a62e1ab22f0d9915ff2d43c"
+  ResponseSuccess:
+    type: object
+    properties:
+      status:
+        type: number
+        example: 200
+      data:
+        type: object
