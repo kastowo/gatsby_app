@@ -316,7 +316,7 @@ paths:
       tags:
        - Flight
       summary: ""
-      description: "Add order"
+      description: "Delete order"
       consumes:
         - application/json
       parameters:
