@@ -1,5 +1,5 @@
 from flask import request
-import requests, json, calendar, time
+import requests, json, calendar, time, urllib.parse
 
 from config import SECRET_KEY, BUSINESS_ID, BUSINESS_NAME, ENDPOINT_URI
 
@@ -176,7 +176,129 @@ def getFlightData():
 
     return response
 
+def addOrder():
+    TOKEN = request.headers['TOKEN']
+    data = request.data
+    dataOrder = json.loads(data)
 
+    flight_id = dataOrder['flight_id']
+    ret_flight_id = dataOrder['ret_flight_id']
+    lion_captcha = dataOrder['lion_captcha']
+    lion_session_id = dataOrder['lion_session_id']
+    adult = dataOrder['adult']
+    child = dataOrder['child']
+    infant = dataOrder['infant']
+    con_salutation = dataOrder['con_salutation']
+    con_first_name = dataOrder['con_first_name']
+    con_last_name = dataOrder['con_last_name']
+    con_phone = dataOrder['con_phone']
+    con_other_phone = dataOrder['con_other_phone']
+    con_email_address = dataOrder['con_email_address']
+
+    qString = ''
+    if flight_id:
+        qString += 'flight_id=' + flight_id + '&'
+
+    if ret_flight_id:
+        qString += 'ret_flight_id=' + ret_flight_id + '&'
+
+    if lion_captcha:
+        qString += 'lioncaptcha=' + lion_captcha + '&'
+
+    if lion_session_id:
+        qString += 'lionsessionid=' + lion_session_id + '&'
+
+    if con_salutation:
+        qString += 'conSalutation=' + con_salutation + '&'
+
+    if con_first_name:
+        qString += 'conFirstName=' + con_first_name + '&'
+
+    if con_last_name:
+        qString += 'conLastName=' + con_last_name + '&'
+
+    if con_phone:
+        qString += 'conPhone=' + urllib.parse.quote_plus(con_phone) + '&'
+
+    if con_other_phone:
+        qString += 'conOtherPhone=' + urllib.parse.quote_plus(con_other_phone) + '&'
+
+    if con_email_address:
+        qString += 'conEmailAddress=' + con_email_address + '&'
+
+    #set passenger
+    if adult:
+        qString += 'adult=' + str(adult) + '&'
+
+        i_adult = 1
+        for adultPasenger in dataOrder['adult_passenger']:
+            qString += 'ida'+ str(i_adult) + '=' + adultPasenger['id'] + '&'
+            qString += 'titlea'+ str(i_adult) + '=' + adultPasenger['title'] + '&'
+            qString += 'firstnamea'+ str(i_adult) + '=' + adultPasenger['firstname'] + '&'
+            qString += 'lastnamea'+ str(i_adult) + '=' + adultPasenger['lastname'] + '&'
+            qString += 'birthdatea'+ str(i_adult) + '=' + adultPasenger['birthdate'] + '&'
+
+            i_adult += 1
+
+    if child:
+        qString += 'child=' + str(child) + '&'
+
+        i_child = 1
+        for childPasenger in dataOrder['child_passenger']:
+            qString += 'idc'+ str(i_child) + '=' + childPasenger['id'] + '&'
+            qString += 'titlec'+ str(i_child) + '=' + childPasenger['title'] + '&'
+            qString += 'firstnamec'+ str(i_child) + '=' + childPasenger['firstname'] + '&'
+            qString += 'lastnamec'+ str(i_child) + '=' + childPasenger['lastname'] + '&'
+            qString += 'birthdatec'+ str(i_child) + '=' + childPasenger['birthdate'] + '&'
+
+            i_child += 1
+
+    if infant:
+        qString += 'infant=' + str(infant) + '&'
+
+        i_infant = 1
+        for infantPasenger in dataOrder['infant_passenger']:
+            qString += 'idc' + str(i_infant) + '=' + infantPasenger['id'] + '&'
+            qString += 'titlei'+ str(i_infant) + '=' + infantPasenger['title'] + '&'
+            qString += 'firstnamei'+ str(i_infant) + '=' + infantPasenger['firstname'] + '&'
+            qString += 'lastnamei'+ str(i_infant) + '=' + infantPasenger['lastname'] + '&'
+            qString += 'birthdatei'+ str(i_infant) + '=' + infantPasenger['birthdate'] + '&'
+            qString += 'parenti'+ str(i_infant) + '=' + str(infantPasenger['parent']) + '&'
+
+            i_infant += 1
+
+
+    qString += 'token=' + TOKEN + '&output=json&'
+
+    url = ENDPOINT_URI + '/order/add/flight?' + qString[:-1]
+
+    response = getAPI(url)
+
+    #confirm this order
+    if response["status"] == 200:
+        qString2 = 'token=' + TOKEN + '&output=json&'
+
+        url = ENDPOINT_URI + '/order?' + qString2[:-1]
+
+        response = getAPI(url)
+
+    return response
+
+def deleteOrder(order_id):
+    TOKEN = request.headers['TOKEN']
+    orderId = order_id
+
+    qString = ''
+    if orderId:
+        qString += 'order_detail_id=' + orderId + '&'
+
+    qString += 'token=' + TOKEN + '&output=json&'
+
+    url = ENDPOINT_URI + '/order/delete_order?' + qString[:-1]
+
+    response = getAPI(url)
+
+    return response
 
 #private function
 def getAPI(URL):

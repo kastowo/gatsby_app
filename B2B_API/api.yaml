@@ -5,7 +5,7 @@ info:
   title: "B2B API"
   # termsOfService: "http://swagger.io/terms/"
   contact:
-    email: "kastowoayani@gmail.com"
+    email: "dkastowo@yahoo.co.id"
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -286,6 +286,57 @@ paths:
             $ref: "#/definitions/ResponseSuccess"
         "400":
           description: Error header params
+  /order:
+    post:
+      tags:
+       - Flight
+      summary: ""
+      description: "Add order"
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+        - in: body
+          name: addOrder
+          schema:
+            $ref: "#/definitions/AddOrder"
+      operationId: flight.addOrder
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /order/{order_id}:
+    delete:
+      tags:
+       - Flight
+      summary: ""
+      description: "Add order"
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: TOKEN
+          type: string
+          required: true
+        - in: path
+          name: order_id
+          type: string
+          required: true
+      operationId: flight.deleteOrder
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+
 
 definitions:
   Token:
@@ -338,3 +389,139 @@ definitions:
         example: 200
       data:
         type: object
+  AddOrder:
+    type: object
+    properties:
+      flight_id:
+        type: string
+        description: "flight id that choosen by user"
+      ret_flight_id:
+        type: string
+        description: "return flight id that choosen by user"
+      lion_captcha:
+        type: string
+        description: "lioncaptcha that user input if order lion airines and function get captcha didn't return empty value"
+      lion_session_id:
+        type: string
+        description: "captcha session id that show to user if order lion airines and function get captcha didn't return empty value"
+      adult:
+        type: integer
+        maximum: 6
+        default: 1
+        description: "number of adult passenger"
+      child:
+        type: integer
+        maximum: 6
+        default: 0
+        description: "number of child passenger"
+      infant:
+        type: integer
+        maximum: 6
+        default: 0
+        description: "number of infant passenger"
+      con_salutation:
+        type: string
+        description: "contact person title ( ex: Mr.,Mrs.,Ms.)"
+        maxLength: 5
+      con_first_name:
+        type: string
+        description: "contact person first name"
+        maxLength: 50
+      con_last_name:
+        type: string
+        description: "contact person last name"
+        maxLength: 50
+      con_phone:
+        type: string
+        description: "contact person phone, ex: 081232323343 or+62324324234234."
+        maxLength: 20
+      con_other_phone:
+        type: string
+        description: "contact person phone, ex: 081232323343 or+62324324234234."
+        maxLength: 20
+      con_email_address:
+        type: string
+        format: email
+        description: "contact person email"
+        maxLength: 50
+      adult_passenger:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            firstname:
+              type: string
+              maxLength: 50
+              description: "Firstname of adult passenger"
+            lastname:
+              type: string
+              maxLength: 50
+              description: "Lastname of adult passenger"
+            birthdate:
+              type: string
+              format: Date
+              example: "2019-04-21"
+            passport_no:
+              type: string
+            passport_expiry_date:
+              type: string
+              format: Date
+              example: "2019-04-21"
+            passport_issued_date:
+              type: string
+              format: Date
+              example: "2019-04-21"
+            passport_issuing:
+              type: string
+              example: "id for Indonesia"
+            passport_nationality:
+              type: string
+              example: "id for Indonesia"
+      child_passenger:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            firstname:
+              type: string
+              maxLength: 50
+              description: "Firstname of child passenger"
+            lastname:
+              type: string
+              maxLength: 50
+              description: "Lastname of child passenger"
+            birthdate:
+              type: string
+              format: Date
+              example: "2019-04-21"
+      infant_passenger:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            firstname:
+              type: string
+              maxLength: 50
+              description: "Firstname of infant passenger"
+            lastname:
+              type: string
+              maxLength: 50
+              description: "Lastname of infant passenger"
+            birthdate:
+              type: string
+              format: Date
+              example: "2019-04-21"
+            parent:
+              type: integer
