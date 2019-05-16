@@ -12,7 +12,7 @@ info:
 host: "api.atiket.com"
 basePath: "/v1"
 paths:
-  /token:
+  /generate_token:
     get:
       tags:
        - Authorization
@@ -20,65 +20,150 @@ paths:
       description: "Generate token code to access apps"
       consumes:
         - application/json
-      operationId: flight.getToken
+      operationId: flight.generateToken
       responses:
         "200":
           description: Succesful operation
           schema:
             $ref: "#/definitions/Token"
         "400":
-          description: Error header params
-  /search_flight:
+          description: BIND_EXCEPTION Some parameters are invalid.
+        "401":
+          description: UNAUTHORIZED Access Token is invalid.
+        "403":
+          description: FORBIDDEN Server not Found or invalid URL.
+        "404":
+          description: NOT_FOUND URL not found.
+        "500":
+          description: NOT_FOUND URL not found.
+  /refresh_token:
     get:
       tags:
-       - Flight
+       - Authorization
       summary: ""
-      description: "Flight schedule search"
+      description: "Refresh access token"
       consumes:
         - application/json
       parameters:
         - in: header
-          name: TOKEN
+          name: accessToken
+          type: string
+          required: true
+      operationId: flight.refreshToken
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/RefToken"
+        "400":
+          description: BIND_EXCEPTION Some parameters are invalid.
+        "401":
+          description: UNAUTHORIZED Access Token is invalid.
+        "403":
+          description: FORBIDDEN Server not Found or invalid URL.
+        "404":
+          description: NOT_FOUND URL not found.
+        "500":
+          description: NOT_FOUND URL not found.
+  /search_flight:
+    get:
+      tags:
+       - Flight Search
+      summary: ""
+      description: |
+        Search Flight Process. Returning every kind of available itineraries in our inventory.
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: accessToken
           type: string
           required: true
         - in: query
-          name : departure
+          name : origin
           type: string
-          maxLength: 3
-          description: "Departure airport code"
+          description: |
+            Origin Airport or City.
+            City always has 'c' postfix in its name. Example : JKT --> JKTC
           required: true
         - in: query
-          name: arrival
+          name : originType
           type: string
-          maxLength: 3
-          description: "Arrival airport code"
+          enum:
+            - AIRPORT
+            - CITY
+          description: |
+            AIRPORT : if origin using the airport code.
+            CITY : if origin using the city code
           required: true
         - in: query
-          name: date
+          name: destination
+          type: string
+          description: |
+            Destination Airport or City.
+            City always has 'c' postfix in its name. Example : JKT --> JKTC
+          required: true
+        - in: query
+          name: destinationType
+          type: string
+          enum:
+            - AIRPORT
+            - CITY
+          description: |
+            AIRPORT : if origin using the airport code.
+            CITY : if origin using the city code
+          required: true
+        - in: query
+          name: departureDate
           type: string
           format: Date
-          description: "Depart date"
+          description: |
+            Departure Date (YYYY-MM-DD). Must equal to or greater than today date
           required: true
         - in: query
-          name: ret_date
+          name: returnDate
           type: string
           format: Date
-          description: "Return date"
+          description: |
+            Return Date (YYYY-MM-DD). Must equal to or greater than departureDate
         - in: query
           name: adult
           type: integer
           default: 1
-          maximum: 6
+          maximum: 9
+          required: true
         - in: query
           name: child
           type: integer
           default: 0
-          maximum: 6
+          maximum: 9
+          required: true
         - in: query
           name: infant
           type: integer
           default: 0
-          maximum: 6
+          maximum: 9
+          required: true
+        - in: query
+          name: cabinClass
+          type: string
+          enum:
+            - ECONOMY
+            - BUSINESS
+            - FIRST
+            - PREMIER
+          required: true
+        - in: query
+          name: searchType
+          type: string
+          enum:
+            - ONE_WAY
+            - ROUND_TRIP
+          description: |
+            ONE_WAY : put this if you want the result only showing the departing flight from your selected origin.
+            ROUND_TRIP : put this if you want the result both for the departing flight from your selected origin and selected destination
+          required: true
+
       operationId: flight.searchFlight
       responses:
         "200":
@@ -87,223 +172,28 @@ paths:
             $ref: "#/definitions/ResponseSuccess"
         "400":
           description: Error header params
-  /search_nearest_airport:
-    get:
-      tags:
-       - Flight
-      summary: ""
-      description: "Search for the nearest airport"
-      consumes:
-        - application/json
-      parameters:
-        - in: header
-          name: TOKEN
-          type: string
-          required: true
-        - in: query
-          name : ip
-          type: string
-          maxLength: 20
-          format: ipv4
-          description: "Ip address user"
-        - in: query
-          name: long
-          type: string
-          maxLength: 20
-          description: "Longitude user position, can be empty if you use an ip address"
-        - in: query
-          name: lat
-          type: string
-          maxLength: 20
-          description: "Latitude user position, can be empty if you use an ip address"
-      operationId: flight.searchNearestAirport
-      responses:
-        "200":
-          description: Succesful operation
-          schema:
-            $ref: "#/definitions/ResponseSuccess"
-        "400":
-          description: Error header params
-  /search_popular_airport:
-    get:
-      tags:
-       - Flight
-      summary: ""
-      description: "Search for the popular airport destination from given departure airport"
-      consumes:
-        - application/json
-      parameters:
-        - in: header
-          name: TOKEN
-          type: string
-          required: true
-        - in: query
-          name: depart
-          type: string
-          maxLength: 3
-          required: true
-      operationId: flight.searchPopularAirport
-      responses:
-        "200":
-          description: Succesful operation
-          schema:
-            $ref: "#/definitions/ResponseSuccess"
-        "400":
-          description: Error header params
-  /search_airport:
-    get:
-      tags:
-       - Flight
-      summary: ""
-      description: "List of all airport"
-      consumes:
-        - application/json
-      parameters:
-        - in: header
-          name: TOKEN
-          type: string
-          required: true
-      operationId: flight.searchAirport
-      responses:
-        "200":
-          description: Succesful operation
-          schema:
-            $ref: "#/definitions/ResponseSuccess"
-        "400":
-          description: Error header params
-  /check_flight_updated:
-    get:
-      tags:
-       - Flight
-      summary: ""
-      description: "Data given when requested is the latest data updated by the previous request, not the live data. For checking whether new or updated data exists or not, you should call check update function. If update variable is greater than 0, it means new data exists. To get the latest data, search function must be called again."
-      consumes:
-        - application/json
-      parameters:
-        - in: header
-          name: TOKEN
-          type: string
-          required: true
-        - in: query
-          name : departure
-          type: string
-          maxLength: 3
-          description: "Departure airport code"
-          required: true
-        - in: query
-          name: arrival
-          type: string
-          maxLength: 3
-          description: "Arrival airport code"
-          required: true
-        - in: query
-          name: date
-          type: string
-          format: Date
-          description: "Depart date"
-          required: true
-        - in: query
-          name: adult
-          type: integer
-          default: 1
-          maximum: 6
-        - in: query
-          name: child
-          type: integer
-          default: 0
-          maximum: 6
-        - in: query
-          name: infant
-          type: integer
-          default: 0
-          maximum: 6
-      operationId: flight.checkFlightUpdated
-      responses:
-        "200":
-          description: Succesful operation
-          schema:
-            $ref: "#/definitions/ResponseSuccess"
-        "400":
-          description: Error header params
-  /get_lion_captcha:
-    get:
-      tags:
-       - Flight
-      summary: ""
-      description: "Specially for Lion air flights, you must request a captcha first.If it exists, the captcha and sessionid must be included while calling add order."
-      consumes:
-        - application/json
-      parameters:
-        - in: header
-          name: TOKEN
-          type: string
-          required: true
-      operationId: flight.getLionCaptcha
-      responses:
-        "200":
-          description: Succesful operation
-          schema:
-            $ref: "#/definitions/ResponseSuccess"
-        "400":
-          description: Error header params
-  /get_flight_data:
-    get:
-      tags:
-       - Flight
-      summary: ""
-      description: "After search, call this function when user choose the flight to ensure the data."
-      consumes:
-        - application/json
-      parameters:
-        - in: header
-          name: TOKEN
-          type: string
-          required: true
-        - in: query
-          name: flight_id
-          type: string
-          required: true
-          description: "flight_id want to order"
-        - in: query
-          name: date
-          type: string
-          required: true
-          format: Date
-          description: "date want to travel"
-        - in: query
-          name: ret_flight_id
-          type: string
-          description: "ret_flight_id want to order for return flight"
-        - in: query
-          name: ret_date
-          type: string
-          description: "return date want to travel"
-      operationId: flight.getFlightData
-      responses:
-        "200":
-          description: Succesful operation
-          schema:
-            $ref: "#/definitions/ResponseSuccess"
-        "400":
-          description: Error header params
-  /order:
+  /add_to_cart:
     post:
       tags:
-       - Flight
+       - Flight Book
       summary: ""
-      description: "Add order"
+      description: |
+        Add Current Selected Flight Itinerary to user cart.
+        This endpoint will produce the cartData.
+        This data only saved temporary and will be expired within 15 minutes.
+        CartId will be used for booking process.
       consumes:
         - application/json
       parameters:
         - in: header
-          name: TOKEN
+          name: accessToken
           type: string
           required: true
         - in: body
-          name: addOrder
+          name : addToCart
           schema:
-            $ref: "#/definitions/AddOrder"
-      operationId: flight.addOrder
+            $ref: "#/definitions/AddToCart"
+      operationId: flight.addToCart
       responses:
         "200":
           description: Succesful operation
@@ -311,24 +201,60 @@ paths:
             $ref: "#/definitions/ResponseSuccess"
         "400":
           description: Error header params
-  /order/{order_id}:
-    delete:
+  /get_cart/{cartId}:
+    get:
       tags:
-       - Flight
+       - Flight Book
       summary: ""
-      description: "Delete order"
+      description: |
+        Get Cart Detail By returned Cart ID.
       consumes:
         - application/json
       parameters:
         - in: header
-          name: TOKEN
+          name: accessToken
           type: string
           required: true
         - in: path
-          name: order_id
+          name : cartId
+          type: string
+          description: |
+            Cart Id retrieved from Add Cart Process
+          required: true
+        - in: query
+          name : lang
+          type: string
+          description: |
+            Language Code
+          default: ID
+
+      operationId: flight.getCart
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /booking:
+    post:
+      tags:
+       - Flight Book
+      summary: ""
+      description: |
+        Booking Process
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: accessToken
           type: string
           required: true
-      operationId: flight.deleteOrder
+        - in: body
+          name : booking
+          schema:
+            $ref: "#/definitions/Booking"
+      operationId: flight.booking
       responses:
         "200":
           description: Succesful operation
@@ -337,50 +263,316 @@ paths:
         "400":
           description: Error header params
 
-
 definitions:
   Token:
-    type: "object"
+    type: object
     properties:
       status:
-        type: number
-        example: 200
+        type: string
       data:
-        type: "object"
+        type: object
         properties:
-          diagnostic:
-            type: "object"
+          code:
+            type: string
+          data:
+            type: object
             properties:
-              status:
-                type: number
-                example: 200
-              elapsetime:
-                type: number
-                example: 0.0555
-              memoryusage:
+              accessToken:
                 type: string
-                example: 4.48MB
-              unix_timestamp:
-                type: number
-                example: 1399524662
-              confirm:
+              tokenType:
                 type: string
-                example: success
-              lang:
+              expiresIn:
                 type: string
-                example: id
-              currency:
+              scope:
                 type: string
-                example: IDR
-          output_type:
+              jti:
+                type: string
+          errors:
+            type: array
+            items:
+              type: string
+          message:
             type: string
-            example: json
-          login_status:
+          serverTime:
             type: string
-            example: false
-          token:
+            format: date-time
+  RefToken:
+    type: object
+    properties:
+      status:
+        type: string
+      data:
+        type: object
+        properties:
+          code:
             type: string
-            example: "56c8624d6a62e1ab22f0d9915ff2d43c"
+          data:
+            type: object
+            properties:
+              clientId:
+                type: string
+              expiresIn:
+                type: string
+              jti:
+                type: string
+          errors:
+            type: array
+            items:
+              type: string
+          message:
+            type: string
+          serverTime:
+            type: string
+            format: date-time
+  AddToCart:
+    type: object
+    properties:
+      cartDetails:
+        type: array
+        items:
+          type: object
+          properties:
+            flightId:
+              type: string
+            supplierRequest:
+              type: object
+              properties:
+                supplierId:
+                  type: string
+      currency:
+        type: string
+        description: |
+          Selected Currency
+      departurePrice:
+        type: number
+        format: double
+        description: |
+          Selected Departure Flight Total Price
+  Booking:
+    type: object
+    properties:
+      cartId:
+        type: string
+      adults:
+        type: array
+        items:
+          type: object
+          properties:
+            departureBaggage:
+              type: string
+              description: |
+                Add-on baggage value (in kg or pcs) for Departure Flight. This value can be retrieved from the departureBaggage attribute in the 'Get Cart' API response.
+            dob:
+              type: string
+              description: |
+                Passenger Date of Birth
+            firstName:
+              type: string
+              description: |
+                Firstname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            frequentFlyer:
+              type: string
+              description: |
+                Frequent Flyer Account
+            fullName:
+              type: string
+              description: |
+                Fullname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            issuingCountry:
+              type: string
+              description: |
+                Country Code which issuing the Passenger Passport
+            issuingDate:
+              type: string
+              format: date
+              description: |
+                Datetime when the Passenger Passport was issued
+            lastName:
+              type: string
+              description: |
+                Lastname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            nationality:
+              type: string
+              description: |
+                Nationality (Country Code) of the Passenger
+            passportExpiry:
+              type: string
+              format: date
+              description: |
+                Datetime when the Passenger Passport will expired
+            passportNo:
+              type: string
+              description: |
+                Passport Number
+            returnBaggage:
+              type: string
+              description: |
+                Add-on baggage value (in kg or pcs) for Return Flight. This value can be retrieved from the returnBaggage attribute in the 'Get Cart' API response.
+            title:
+              type: string
+              enum:
+                - Mr.
+                - Mrs.
+                - Ms.
+                - Mstr.
+      childs:
+        type: array
+        items:
+          type: object
+          properties:
+            departureBaggage:
+              type: string
+              description: |
+                Add-on baggage value (in kg or pcs) for Departure Flight. This value can be retrieved from the departureBaggage attribute in the 'Get Cart' API response.
+            dob:
+              type: string
+              description: |
+                Passenger Date of Birth
+            firstName:
+              type: string
+              description: |
+                Firstname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            frequentFlyer:
+              type: string
+              description: |
+                Frequent Flyer Account
+            fullName:
+              type: string
+              description: |
+                Fullname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            issuingCountry:
+              type: string
+              description: |
+                Country Code which issuing the Passenger Passport
+            issuingDate:
+              type: string
+              format: date
+              description: |
+                Datetime when the Passenger Passport was issued
+            lastName:
+              type: string
+              description: |
+                Lastname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            nationality:
+              type: string
+              description: |
+                Nationality (Country Code) of the Passenger
+            passportExpiry:
+              type: string
+              format: date
+              description: |
+                Datetime when the Passenger Passport will expired
+            passportNo:
+              type: string
+              description: |
+                Passport Number
+            returnBaggage:
+              type: string
+              description: |
+                Add-on baggage value (in kg or pcs) for Return Flight. This value can be retrieved from the returnBaggage attribute in the 'Get Cart' API response.
+            title:
+              type: string
+              enum:
+                - Mr.
+                - Mrs.
+                - Ms.
+                - Mstr.
+      infants:
+        type: array
+        items:
+          type: object
+          properties:
+            departureBaggage:
+              type: string
+              description: |
+                Add-on baggage value (in kg or pcs) for Departure Flight. This value can be retrieved from the departureBaggage attribute in the 'Get Cart' API response.
+            dob:
+              type: string
+              description: |
+                Passenger Date of Birth
+            firstName:
+              type: string
+              description: |
+                Firstname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            frequentFlyer:
+              type: string
+              description: |
+                Frequent Flyer Account
+            fullName:
+              type: string
+              description: |
+                Fullname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            issuingCountry:
+              type: string
+              description: |
+                Country Code which issuing the Passenger Passport
+            issuingDate:
+              type: string
+              format: date
+              description: |
+                Datetime when the Passenger Passport was issued
+            lastName:
+              type: string
+              description: |
+                Lastname, there are some naming rules applied depends on the Marketing Airline and Routes see 'Naming Rule' section
+            nationality:
+              type: string
+              description: |
+                Nationality (Country Code) of the Passenger
+            passportExpiry:
+              type: string
+              format: date
+              description: |
+                Datetime when the Passenger Passport will expired
+            passportNo:
+              type: string
+              description: |
+                Passport Number
+            returnBaggage:
+              type: string
+              description: |
+                Add-on baggage value (in kg or pcs) for Return Flight. This value can be retrieved from the returnBaggage attribute in the 'Get Cart' API response.
+            title:
+              type: string
+              enum:
+                - Mr.
+                - Mrs.
+                - Ms.
+                - Mstr.
+      contact:
+        type: object
+        properties:
+          areaCode:
+            type: string
+            description: |
+              Phone Area Code, example : '+62'
+          dob:
+            type: string
+            description: |
+              Customer Date of Birth
+          email:
+            type: string
+            format: email
+            description: |
+              Customer Email
+
+          fullName:
+            type: string
+            description: |
+              Customer Fullname
+          phone:
+            type: string
+            description: |
+              Customer Phone Number (without areaCode)
+          title:
+            type: string
+            enum:
+              - Mr.
+              - Mrs.
+              - Ms.
+              - Mstr.
+      insurance:
+        type: boolean
   ResponseSuccess:
     type: object
     properties:
@@ -389,139 +581,3 @@ definitions:
         example: 200
       data:
         type: object
-  AddOrder:
-    type: object
-    properties:
-      flight_id:
-        type: string
-        description: "flight id that choosen by user"
-      ret_flight_id:
-        type: string
-        description: "return flight id that choosen by user"
-      lion_captcha:
-        type: string
-        description: "lioncaptcha that user input if order lion airines and function get captcha didn't return empty value"
-      lion_session_id:
-        type: string
-        description: "captcha session id that show to user if order lion airines and function get captcha didn't return empty value"
-      adult:
-        type: integer
-        maximum: 6
-        default: 1
-        description: "number of adult passenger"
-      child:
-        type: integer
-        maximum: 6
-        default: 0
-        description: "number of child passenger"
-      infant:
-        type: integer
-        maximum: 6
-        default: 0
-        description: "number of infant passenger"
-      con_salutation:
-        type: string
-        description: "contact person title ( ex: Mr.,Mrs.,Ms.)"
-        maxLength: 5
-      con_first_name:
-        type: string
-        description: "contact person first name"
-        maxLength: 50
-      con_last_name:
-        type: string
-        description: "contact person last name"
-        maxLength: 50
-      con_phone:
-        type: string
-        description: "contact person phone, ex: 081232323343 or+62324324234234."
-        maxLength: 20
-      con_other_phone:
-        type: string
-        description: "contact person phone, ex: 081232323343 or+62324324234234."
-        maxLength: 20
-      con_email_address:
-        type: string
-        format: email
-        description: "contact person email"
-        maxLength: 50
-      adult_passenger:
-        type: array
-        items:
-          type: object
-          properties:
-            id:
-              type: string
-            title:
-              type: string
-            firstname:
-              type: string
-              maxLength: 50
-              description: "Firstname of adult passenger"
-            lastname:
-              type: string
-              maxLength: 50
-              description: "Lastname of adult passenger"
-            birthdate:
-              type: string
-              format: Date
-              example: "2019-04-21"
-            passport_no:
-              type: string
-            passport_expiry_date:
-              type: string
-              format: Date
-              example: "2019-04-21"
-            passport_issued_date:
-              type: string
-              format: Date
-              example: "2019-04-21"
-            passport_issuing:
-              type: string
-              example: "id for Indonesia"
-            passport_nationality:
-              type: string
-              example: "id for Indonesia"
-      child_passenger:
-        type: array
-        items:
-          type: object
-          properties:
-            id:
-              type: string
-            title:
-              type: string
-            firstname:
-              type: string
-              maxLength: 50
-              description: "Firstname of child passenger"
-            lastname:
-              type: string
-              maxLength: 50
-              description: "Lastname of child passenger"
-            birthdate:
-              type: string
-              format: Date
-              example: "2019-04-21"
-      infant_passenger:
-        type: array
-        items:
-          type: object
-          properties:
-            id:
-              type: string
-            title:
-              type: string
-            firstname:
-              type: string
-              maxLength: 50
-              description: "Firstname of infant passenger"
-            lastname:
-              type: string
-              maxLength: 50
-              description: "Lastname of infant passenger"
-            birthdate:
-              type: string
-              format: Date
-              example: "2019-04-21"
-            parent:
-              type: integer
