@@ -10,7 +10,7 @@ def generateToken():
     header = {'Authorization': 'Basic ' + encodeStr.decode('utf-8')}
 
     #set endpoint
-    url = ENDPOINT_URI + '/tix-security-auth/token/generate'
+    url = ENDPOINT_URI + '/b2b-gateway/tix-security-auth/token/generate'
 
     #set json request
     dataJson = {'grantType': GRANT_TYPE }
@@ -25,7 +25,7 @@ def refreshToken():
     header = ''
 
     #set endpoint
-    url = ENDPOINT_URI + '/tix-security-auth/token/extend'
+    url = ENDPOINT_URI + '/b2b-gateway/tix-security-auth/token/extend'
 
     #set json request
     token = request.headers['accessToken']
@@ -91,7 +91,7 @@ def searchFlight():
     #set default value resultType and async
     qString += 'resultType=ALL&async=false&'
 
-    url = ENDPOINT_URI + '/tix-flight-search/search?' + qString[:-1]
+    url = ENDPOINT_URI + '/b2b-gateway/tix-flight-search/search?' + qString[:-1]
 
     response = getAPI(url, header)
 
@@ -103,7 +103,7 @@ def addToCart():
     header = {'accessToken': TOKEN}
 
     # set endpoint
-    url = ENDPOINT_URI + '/tix-flight-core/cart'
+    url = ENDPOINT_URI + '/b2b-gateway/tix-flight-core/cart'
 
     # set json request
     data = request.data
@@ -138,7 +138,9 @@ def getCart(cartId):
         qString += 'lang=' + lang + '&'
 
     # set endpoint
-    url = ENDPOINT_URI + '/tix-flight-core/cart/'+ cartId + '?' + qString[:-1]
+    # url = ENDPOINT_URI + '/b2b-gateway/tix-flight-core/cart/'+ cartId + '?' + qString[:-1]
+    url = ENDPOINT_URI + '/b2b-gateway/tix-flight-core/v2/cart/'+ cartId + '?' + qString[:-1]
+
 
     # result
     response = getAPI(url, header)
@@ -151,7 +153,8 @@ def booking():
     header = {'accessToken': TOKEN}
 
     # set endpoint
-    url = ENDPOINT_URI + '/tix-flight-core/booking'
+    # url = ENDPOINT_URI + '/b2b-gateway/tix-flight-core/booking'
+    url = ENDPOINT_URI + '/b2b-gateway/tix-flight-core/v2/booking'
 
     data = request.data
     dataBooking = json.loads(data)
@@ -196,6 +199,77 @@ def booking():
         response = {"status": errCode, "message": message}
 
     return response
+
+def checkOrder():
+    TOKEN = request.headers['accessToken']
+    orderId = request.args.get('order_id')
+    email = request.args.get('email')
+
+    qString = ''
+    if orderId:
+        qString += 'order_id=' + orderId + '&'
+
+    if email:
+        qString += 'email=' + email + '&'
+
+
+    qString += 'secretkey=' + CLIENT_SECRET + '&output=json&'
+
+    url = ENDPOINT_URI + '/check_order?' + qString[:-1]
+
+    response = getAPI(url, '')
+
+    return response
+
+def checkout():
+    TOKEN = request.headers['accessToken']
+
+    data = request.data
+    dataCheckout = json.loads(data)
+
+    qString = ''
+    if 'orderHash' in dataCheckout:
+        qString += 'token=' + dataCheckout["orderHash"] + '&output=json&'
+
+    ##save order
+    url = ENDPOINT_URI + '/order?' + qString[:-1]
+
+    response = getAPI(url, '')
+
+    if response["status"] == 200 and response["data"]["diagnostic"]["status"] == 200:
+        ##checkout process
+        qString += 'btn_booking=1&'
+        url = ENDPOINT_URI + '/checkout/checkout_payment/8?' + qString[:-1]
+
+        response = getAPI(url, '')
+
+    return response
+
+def confirmPayment():
+    TOKEN = request.headers['accessToken']
+
+    data = request.data
+    dataPayment = json.loads(data)
+
+    qString = ''
+
+    if 'orderId' in dataPayment:
+        qString += 'order_id=' + dataPayment["orderId"] + '&'
+
+    if 'notes' in dataPayment:
+        qString += 'textarea_note=' + dataPayment["notes"] + '&'
+
+    qString += 'secretkey=' + CLIENT_SECRET + '&confirmkey=' +  +'&output=json&'
+
+
+    ##confirm payment
+    url = ENDPOINT_URI + '/order?' + qString[:-1]
+
+    response = getAPI(url, '')
+
+    return response
+
+
 
 # def searchNearestAirport():
 #     TOKEN = request.headers['TOKEN']

@@ -262,7 +262,93 @@ paths:
             $ref: "#/definitions/ResponseSuccess"
         "400":
           description: Error header params
-
+  /check_order:
+    get:
+      tags:
+       - Flight Book
+      summary: ""
+      description: |
+        Check the Booked Order Detail (including current status)
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: accessToken
+          type: string
+          required: true
+        - in: query
+          name : order_id
+          type: string
+          description: |
+            Order Id to Check
+          required: true
+        - in: query
+          name : email
+          type: string
+          format: email
+          description: |
+            Contact Email
+          required: true
+      operationId: flight.checkOrder
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /checkout:
+    post:
+      tags:
+       - Flight Confirm Transaction
+      summary: ""
+      description: |
+        Checkout Payment using Deposit
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: accessToken
+          type: string
+          required: true
+        - in: body
+          name : checkout
+          schema:
+            $ref: "#/definitions/Checkout"
+      operationId: flight.checkout
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
+  /confirm_payment:
+    post:
+      tags:
+       - Flight Confirm Transaction
+      summary: ""
+      description: |
+        Confirm the processed Payment.
+      consumes:
+        - application/json
+      parameters:
+        - in: header
+          name: accessToken
+          type: string
+          required: true
+        - in: body
+          name : payment
+          schema:
+            $ref: "#/definitions/ConfirmPayment"
+      operationId: flight.confirmPayment
+      responses:
+        "200":
+          description: Succesful operation
+          schema:
+            $ref: "#/definitions/ResponseSuccess"
+        "400":
+          description: Error header params
 definitions:
   Token:
     type: object
@@ -358,10 +444,36 @@ definitions:
         items:
           type: object
           properties:
-            departureBaggage:
-              type: string
-              description: |
-                Add-on baggage value (in kg or pcs) for Departure Flight. This value can be retrieved from the departureBaggage attribute in the 'Get Cart' API response.
+            departureBaggages:
+              type: array
+              items:
+                type: object
+                properties:
+                  flightId:
+                    type: string
+                    description: |
+                      Flight ID to be mapped with Baggage Information
+                  baggages:
+                    type: array
+                    description: |
+                      Baggage Amount per Segment Index. Example array('15','20')
+                    items:
+                      type: string
+            returnBaggages:
+              type: array
+              items:
+                type: object
+                properties:
+                  flightId:
+                    type: string
+                    description: |
+                      Flight ID to be mapped with Baggage Information
+                  baggages:
+                    type: array
+                    description: |
+                      Baggage Amount per Segment Index. Example array('15','20')
+                    items:
+                      type: string
             dob:
               type: string
               description: |
@@ -404,10 +516,6 @@ definitions:
               type: string
               description: |
                 Passport Number
-            returnBaggage:
-              type: string
-              description: |
-                Add-on baggage value (in kg or pcs) for Return Flight. This value can be retrieved from the returnBaggage attribute in the 'Get Cart' API response.
             title:
               type: string
               enum:
@@ -420,10 +528,36 @@ definitions:
         items:
           type: object
           properties:
-            departureBaggage:
-              type: string
-              description: |
-                Add-on baggage value (in kg or pcs) for Departure Flight. This value can be retrieved from the departureBaggage attribute in the 'Get Cart' API response.
+            departureBaggages:
+              type: array
+              items:
+                type: object
+                properties:
+                  flightId:
+                    type: string
+                    description: |
+                      Flight ID to be mapped with Baggage Information
+                  baggages:
+                    type: array
+                    description: |
+                      Baggage Amount per Segment Index. Example array('15','20')
+                    items:
+                      type: string
+            returnBaggages:
+              type: array
+              items:
+                type: object
+                properties:
+                  flightId:
+                    type: string
+                    description: |
+                      Flight ID to be mapped with Baggage Information
+                  baggages:
+                    type: array
+                    description: |
+                      Baggage Amount per Segment Index. Example array('15','20')
+                    items:
+                      type: string
             dob:
               type: string
               description: |
@@ -466,10 +600,6 @@ definitions:
               type: string
               description: |
                 Passport Number
-            returnBaggage:
-              type: string
-              description: |
-                Add-on baggage value (in kg or pcs) for Return Flight. This value can be retrieved from the returnBaggage attribute in the 'Get Cart' API response.
             title:
               type: string
               enum:
@@ -482,10 +612,36 @@ definitions:
         items:
           type: object
           properties:
-            departureBaggage:
-              type: string
-              description: |
-                Add-on baggage value (in kg or pcs) for Departure Flight. This value can be retrieved from the departureBaggage attribute in the 'Get Cart' API response.
+            departureBaggages:
+              type: array
+              items:
+                type: object
+                properties:
+                  flightId:
+                    type: string
+                    description: |
+                      Flight ID to be mapped with Baggage Information
+                  baggages:
+                    type: array
+                    description: |
+                      Baggage Amount per Segment Index. Example array('15','20')
+                    items:
+                      type: string
+            returnBaggages:
+              type: array
+              items:
+                type: object
+                properties:
+                  flightId:
+                    type: string
+                    description: |
+                      Flight ID to be mapped with Baggage Information
+                  baggages:
+                    type: array
+                    description: |
+                      Baggage Amount per Segment Index. Example array('15','20')
+                    items:
+                      type: string
             dob:
               type: string
               description: |
@@ -528,10 +684,6 @@ definitions:
               type: string
               description: |
                 Passport Number
-            returnBaggage:
-              type: string
-              description: |
-                Add-on baggage value (in kg or pcs) for Return Flight. This value can be retrieved from the returnBaggage attribute in the 'Get Cart' API response.
             title:
               type: string
               enum:
@@ -573,6 +725,24 @@ definitions:
               - Mstr.
       insurance:
         type: boolean
+  Checkout:
+    type: object
+    properties:
+      orderHash:
+        type: string
+        description: |
+          Order Hash (orderHash) retrieved from Booking Response
+  ConfirmPayment:
+    type: object
+    properties:
+      orderId:
+        type: string
+        description: |
+          Processed Order Id
+      notes:
+        type: string
+        description: |
+          Additional Note for Confirmation
   ResponseSuccess:
     type: object
     properties:
